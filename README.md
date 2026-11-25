@@ -59,6 +59,10 @@ syswatch/
 └── docs/screenshots/         Captures d'écran du tableau de bord
 ```
 
+<img width="1064" height="1089" alt="Architecture Technique" src="https://github.com/user-attachments/assets/addb40d6-73c1-40f8-b9cb-4760ebfc4a1f" />
+
+
+
 ### Schéma des flux
 
 ```mermaid
