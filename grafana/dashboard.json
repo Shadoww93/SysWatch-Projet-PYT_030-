@@ -1,0 +1,894 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_SQLITE",
+      "label": "SQLite SysWatch",
+      "description": "Base data/syswatch.db",
+      "type": "datasource",
+      "pluginId": "frser-sqlite-datasource",
+      "pluginName": "SQLite"
+    }
+  ],
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "10.0.0"
+    },
+    {
+      "type": "datasource",
+      "id": "frser-sqlite-datasource",
+      "name": "SQLite",
+      "version": "3.0.0"
+    }
+  ],
+  "title": "SysWatch-API — Supervision système",
+  "uid": "syswatch",
+  "tags": [
+    "syswatch",
+    "python",
+    "sqlite"
+  ],
+  "timezone": "browser",
+  "editable": true,
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m"
+    ]
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "service",
+        "label": "Service",
+        "type": "query",
+        "datasource": {
+          "type": "frser-sqlite-datasource",
+          "uid": "${DS_SQLITE}"
+        },
+        "definition": "SELECT DISTINCT service_name FROM service_health ORDER BY 1",
+        "query": "SELECT DISTINCT service_name FROM service_health ORDER BY 1",
+        "refresh": 1,
+        "multi": true,
+        "includeAll": true,
+        "current": {},
+        "options": [],
+        "sort": 1,
+        "hide": 0
+      },
+      {
+        "name": "mountpoint",
+        "label": "Point de montage",
+        "type": "query",
+        "datasource": {
+          "type": "frser-sqlite-datasource",
+          "uid": "${DS_SQLITE}"
+        },
+        "definition": "SELECT DISTINCT mountpoint FROM disk_partitions ORDER BY 1",
+        "query": "SELECT DISTINCT mountpoint FROM disk_partitions ORDER BY 1",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": false,
+        "current": {},
+        "options": [],
+        "sort": 1,
+        "hide": 0
+      }
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "gauge",
+      "title": "CPU global",
+      "description": "Dernière mesure de l'utilisation CPU (%).",
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "${DS_SQLITE}"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "${DS_SQLITE}"
+          },
+          "refId": "A",
+          "queryText": "SELECT cpu_pct AS cpu FROM host_metrics ORDER BY timestamp DESC LIMIT 1",
+          "rawQueryText": "SELECT cpu_pct AS cpu FROM host_metrics ORDER BY timestamp DESC LIMIT 1",
+          "queryType": "table",
+          "timeColumns": [
+            "time",
+            "ts"
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      }
+    },
+    {
+      "id": 2,
+      "type": "gauge",
+      "title": "RAM utilisée",
+      "description": "Dernière mesure de la mémoire utilisée (%).",
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "${DS_SQLITE}"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 4,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "${DS_SQLITE}"
+          },
+          "refId": "A",
+          "queryText": "SELECT ram_pct AS ram FROM host_metrics ORDER BY timestamp DESC LIMIT 1",
+          "rawQueryText": "SELECT ram_pct AS ram FROM host_metrics ORDER BY timestamp DESC LIMIT 1",
+          "queryType": "table",
+          "timeColumns": [
+            "time",
+            "ts"
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      }
+    },
+    {
+      "id": 3,
+      "type": "gauge",
+      "title": "Disque $mountpoint",
+      "description": "Occupation de la partition choisie dans la variable $mountpoint. Rouge au-delà du seuil d'incident (85 %).",
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "${DS_SQLITE}"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 8,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "${DS_SQLITE}"
+          },
+          "refId": "A",
+          "queryText": "SELECT usage_pct AS disque FROM disk_partitions WHERE mountpoint = ${mountpoint:sqlstring} ORDER BY timestamp DESC LIMIT 1",
+          "rawQueryText": "SELECT usage_pct AS disque FROM disk_partitions WHERE mountpoint = ${mountpoint:sqlstring} ORDER BY timestamp DESC LIMIT 1",
+          "queryType": "table",
+          "timeColumns": [
+            "time",
+            "ts"
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 75
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "SLA global",
+      "description": "Part des tests de santé réussis sur la période affichée.",
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "${DS_SQLITE}"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 12,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "${DS_SQLITE}"
+          },
+          "refId": "A",
+          "queryText": "SELECT ROUND(100.0 * AVG(is_healthy), 2) AS sla FROM service_health WHERE timestamp >= $__from / 1000 AND timestamp <= $__to / 1000 AND service_name IN (${service:sqlstring})",
+          "rawQueryText": "SELECT ROUND(100.0 * AVG(is_healthy), 2) AS sla FROM service_health WHERE timestamp >= $__from / 1000 AND timestamp <= $__to / 1000 AND service_name IN (${service:sqlstring})",
+          "queryType": "table",
+          "timeColumns": [
+            "time",
+            "ts"
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 95
+              },
+              {
+                "color": "green",
+                "value": 99
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "N/A",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Certificat SSL le plus proche",
+      "description": "Jours restants avant l'expiration du certificat qui expire le plus tôt (services HTTPS).",
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "${DS_SQLITE}"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 16,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "${DS_SQLITE}"
+          },
+          "refId": "A",
+          "queryText": "SELECT MIN(ssl_days_left) AS jours FROM service_health WHERE timestamp = (SELECT MAX(timestamp) FROM service_health) AND ssl_days_left IS NOT NULL AND service_name IN (${service:sqlstring})",
+          "rawQueryText": "SELECT MIN(ssl_days_left) AS jours FROM service_health WHERE timestamp = (SELECT MAX(timestamp) FROM service_health) AND ssl_days_left IS NOT NULL AND service_name IN (${service:sqlstring})",
+          "queryType": "table",
+          "timeColumns": [
+            "time",
+            "ts"
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix: jours",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 15
+              },
+              {
+                "color": "green",
+                "value": 30
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "N/A",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Incidents (période)",
+      "description": "Nombre d'incidents enregistrés sur la période affichée.",
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "${DS_SQLITE}"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 20,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "${DS_SQLITE}"
+          },
+          "refId": "A",
+          "queryText": "SELECT COUNT(*) AS incidents FROM system_incidents WHERE timestamp >= $__from / 1000 AND timestamp <= $__to / 1000",
+          "rawQueryText": "SELECT COUNT(*) AS incidents FROM system_incidents WHERE timestamp >= $__from / 1000 AND timestamp <= $__to / 1000",
+          "queryType": "table",
+          "timeColumns": [
+            "time",
+            "ts"
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "N/A",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "CPU & Load average",
+      "description": "CPU en % (axe gauche) et charge moyenne sur 1 minute (axe droit).",
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "${DS_SQLITE}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 6
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "${DS_SQLITE}"
+          },
+          "refId": "A",
+          "queryText": "SELECT timestamp AS time, cpu_pct AS \"CPU %\", load_1m AS \"Load 1 min\" FROM host_metrics WHERE timestamp >= $__from / 1000 AND timestamp <= $__to / 1000 ORDER BY timestamp",
+          "rawQueryText": "SELECT timestamp AS time, cpu_pct AS \"CPU %\", load_1m AS \"Load 1 min\" FROM host_metrics WHERE timestamp >= $__from / 1000 AND timestamp <= $__to / 1000 ORDER BY timestamp",
+          "queryType": "table",
+          "timeColumns": [
+            "time",
+            "ts"
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Load 1 min"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "I/O disque : lecture vs écriture",
+      "description": "Débits disque calculés par différence entre deux relevés.",
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "${DS_SQLITE}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 6
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "${DS_SQLITE}"
+          },
+          "refId": "A",
+          "queryText": "SELECT timestamp AS time, disk_read_mb_s AS \"Lecture Mo/s\", disk_write_mb_s AS \"Écriture Mo/s\" FROM host_metrics WHERE timestamp >= $__from / 1000 AND timestamp <= $__to / 1000 ORDER BY timestamp",
+          "rawQueryText": "SELECT timestamp AS time, disk_read_mb_s AS \"Lecture Mo/s\", disk_write_mb_s AS \"Écriture Mo/s\" FROM host_metrics WHERE timestamp >= $__from / 1000 AND timestamp <= $__to / 1000 ORDER BY timestamp",
+          "queryType": "table",
+          "timeColumns": [
+            "time",
+            "ts"
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "MBs",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 9,
+      "type": "state-timeline",
+      "title": "Disponibilité des services (UP / DOWN)",
+      "description": "Une ligne par service : vert = UP, rouge = DOWN.",
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "${DS_SQLITE}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 14
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "${DS_SQLITE}"
+          },
+          "refId": "A",
+          "queryText": "SELECT timestamp AS time, service_name, is_healthy FROM service_health WHERE timestamp >= $__from / 1000 AND timestamp <= $__to / 1000 AND service_name IN (${service:sqlstring}) ORDER BY timestamp",
+          "rawQueryText": "SELECT timestamp AS time, service_name, is_healthy FROM service_health WHERE timestamp >= $__from / 1000 AND timestamp <= $__to / 1000 AND service_name IN (${service:sqlstring}) ORDER BY timestamp",
+          "queryType": "time series",
+          "timeColumns": [
+            "time",
+            "ts"
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "displayName": "${__field.labels.service_name}",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "DOWN",
+                  "color": "red",
+                  "index": 0
+                },
+                "1": {
+                  "text": "UP",
+                  "color": "green",
+                  "index": 1
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "showValue": "never",
+        "mergeValues": true,
+        "rowHeight": 0.8,
+        "legend": {
+          "showLegend": false
+        }
+      }
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Temps de réponse des services (TTFB)",
+      "description": "Temps jusqu'à la réception des en-têtes HTTP, par service.",
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "${DS_SQLITE}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 14
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "${DS_SQLITE}"
+          },
+          "refId": "A",
+          "queryText": "SELECT timestamp AS time, service_name, response_time_ms FROM service_health WHERE timestamp >= $__from / 1000 AND timestamp <= $__to / 1000 AND service_name IN (${service:sqlstring}) AND response_time_ms IS NOT NULL ORDER BY timestamp",
+          "rawQueryText": "SELECT timestamp AS time, service_name, response_time_ms FROM service_health WHERE timestamp >= $__from / 1000 AND timestamp <= $__to / 1000 AND service_name IN (${service:sqlstring}) AND response_time_ms IS NOT NULL ORDER BY timestamp",
+          "queryType": "time series",
+          "timeColumns": [
+            "time",
+            "ts"
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10
+          },
+          "displayName": "${__field.labels.service_name}"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 11,
+      "type": "table",
+      "title": "Top processus actifs",
+      "description": "Dernier relevé : processus surveillés + top 5 CPU et RAM.",
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "${DS_SQLITE}"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 13,
+        "x": 0,
+        "y": 22
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "${DS_SQLITE}"
+          },
+          "refId": "A",
+          "queryText": "SELECT pid AS \"PID\", name AS \"Nom\", status AS \"État\", cpu_pct AS \"CPU %\", rss_mb AS \"RAM Mo\", num_threads AS \"Threads\", open_files AS \"Fichiers ouverts\" FROM process_metrics WHERE timestamp = (SELECT MAX(timestamp) FROM process_metrics) ORDER BY cpu_pct DESC, rss_mb DESC LIMIT 15",
+          "rawQueryText": "SELECT pid AS \"PID\", name AS \"Nom\", status AS \"État\", cpu_pct AS \"CPU %\", rss_mb AS \"RAM Mo\", num_threads AS \"Threads\", open_files AS \"Fichiers ouverts\" FROM process_metrics WHERE timestamp = (SELECT MAX(timestamp) FROM process_metrics) ORDER BY cpu_pct DESC, rss_mb DESC LIMIT 15",
+          "queryType": "table",
+          "timeColumns": [
+            "time",
+            "ts"
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      }
+    },
+    {
+      "id": 12,
+      "type": "table",
+      "title": "Derniers incidents",
+      "description": "Dépassements de seuils enregistrés (période affichée).",
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "${DS_SQLITE}"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 11,
+        "x": 13,
+        "y": 22
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "${DS_SQLITE}"
+          },
+          "refId": "A",
+          "queryText": "SELECT timestamp AS time, severity AS \"Sévérité\", category AS \"Catégorie\", resource_name AS \"Ressource\", description AS \"Description\" FROM system_incidents WHERE timestamp >= $__from / 1000 AND timestamp <= $__to / 1000 ORDER BY timestamp DESC LIMIT 50",
+          "rawQueryText": "SELECT timestamp AS time, severity AS \"Sévérité\", category AS \"Catégorie\", resource_name AS \"Ressource\", description AS \"Description\" FROM system_incidents WHERE timestamp >= $__from / 1000 AND timestamp <= $__to / 1000 ORDER BY timestamp DESC LIMIT 50",
+          "queryType": "table",
+          "timeColumns": [
+            "time",
+            "ts"
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Sévérité"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "WARNING": {
+                        "color": "orange",
+                        "index": 0
+                      },
+                      "CRITICAL": {
+                        "color": "red",
+                        "index": 1
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      }
+    }
+  ]
+}

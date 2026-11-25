@@ -1,0 +1,54 @@
+{
+  "database": {
+    "path": "data/syswatch.db",
+    "retention_days": 7,
+    "purge_interval_sec": 3600
+  },
+  "logging": {
+    "file": "logs/app.log",
+    "level": "INFO",
+    "format": "%(asctime)s [%(levelname)s] %(name)s : %(message)s",
+    "max_bytes": 1000000,
+    "backup_count": 3
+  },
+  "collector": {
+    "interval_sec": 5
+  },
+  "processes": {
+    "watch": ["python", "grafana", "nginx", "postgres"],
+    "top_count": 5
+  },
+  "healthchecks": {
+    "interval_sec": 15,
+    "timeout_sec": 5,
+    "max_workers": 4,
+    "user_agent": "SysWatch-API/1.0 (agent de supervision, projet PYT030)",
+    "services": [
+      {
+        "name": "grafana",
+        "url": "http://127.0.0.1:3000/api/health",
+        "expected_status": 200,
+        "json_key": "database"
+      },
+      {
+        "name": "google-dns",
+        "url": "https://dns.google/resolve?name=example.com",
+        "expected_status": 200,
+        "json_key": "Status"
+      },
+      {
+        "name": "wikipedia",
+        "url": "https://www.wikipedia.org",
+        "expected_status": 200,
+        "json_key": null
+      }
+    ]
+  },
+  "thresholds": {
+    "disk_pct": 85,
+    "ssl_days": 15,
+    "leak_readings": 10,
+    "sla_target_pct": 99.0,
+    "sla_window_sec": 86400
+  }
+}
