@@ -59,7 +59,10 @@ syswatch/
 └── docs/screenshots/         Captures d'écran du tableau de bord
 ```
 
-<img width="1064" height="1089" alt="Architecture Technique" src="https://github.com/user-attachments/assets/addb40d6-73c1-40f8-b9cb-4760ebfc4a1f" />
+### Architecture Technique (Schéma Projet Syswatch)
+
+<img width="1064" height="1089" alt="Architecture Technique(1)" src="https://github.com/user-attachments/assets/37612489-e9b3-4aed-b44c-73a685e7f4c0" />
+
 
 
 
